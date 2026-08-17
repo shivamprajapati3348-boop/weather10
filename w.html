@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link  rel="stylesheet" href="style.css"
+    spellcheck="false">
+</head>
+<body>
+
+<div class="card">
+    <div class="search">
+    <input type"text" placeholder="enter city name ">
+    <button><img  src="search.png" ></button>
+    </div>
+    <div class="weather">
+        <img src="rain.png" class="weather-icon"></img>
+    <h1 class="temp">33°C</h1>
+    <h2 class="city">new york</h2>
+    <div class="details">
+        <div class="col">
+            <img src="humidity.png">
+        </div>
+        <p class="humidity">50%</p>
+        <p>humidity</p>
+    </div>
+    </div>
+    <div class="col">
+        <img src="wind.png">
+    </div>
+    <p class="wind">50%</p>
+    <p>wind speed</p>
+</div>
+<script>
+    const apiKey = "8fa895c8b60341de0b4708e45f2ac3b3";
+const apiUrl = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+const searchBox = document.querySelector(".search input");
+const searchBtn = document.querySelector(".search button");
+
+async function checkWeather(city) {
+    const response = await fetch(`${apiUrl}${city}&appid=${apiKey}`);
+    
+    if (response.status === 404) {
+        alert("City not found!");
+        return;
+    }
+
+    const data = await response.json();
+    console.log(data);
+
+    document.querySelector(".city").innerHTML = data.name;
+    document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C";
+    document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+    document.querySelector(".wind").innerHTML = data.wind.speed + " km/h";
+}
+
+searchBtn.addEventListener("click", () => {
+    if (searchBox.value.trim() !== "") {
+        checkWeather(searchBox.value);
+    }
+});
+</script>
+    
+
+
+
+</body>
+
+</html> 
