@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="card">
+    <div class="search">
+      <input id="cityInput" type="text" placeholder="Enter city name" aria-label="city" />
+      <button id="searchBtn" type="button" aria-label="search">Search</button>
+    </div>
+
+    <div class="weather" id="weatherCard" aria-live="polite">
+      <div class="icon" id="icon">🌤️</div>
+      <h1 class="temp" id="temp">--°C</h1>
+      <h2 class="city" id="city">—</h2>
+
+      <div class="details">
+        <div class="detail">
+          <div class="small-icon">💧</div>
+          <div>
+            <p class="humidity" id="humidity">--%</p>
+            <p>humidity</p>
+          </div>
+        </div>
+
+        <div class="detail">
+          <div class="small-icon">💨</div>
+          <div>
+            <p class="wind" id="wind">-- km/h</p>
+            <p>wind speed</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p id="message" class="message" role="status" aria-live="polite"></p>
+  </div>
+
+<script>
+  const input = document.getElementById('cityInput');
+  const btn = document.getElementById('searchBtn');
+  const messageEl = document.getElementById('message');
+
+  async function checkWeather(city) {
+    try {
+      messageEl.textContent = 'Loading...';
+      const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({message:'Unknown error'}));
+        messageEl.textContent = err.message || 'Unable to fetch weather';
+        return;
+      }
+      const data = await res.json();
+
+      // Basic guards
+      if (!data || !data.main || !data.wind) {
+        messageEl.textContent = 'Weather data unavailable for this city.';
+        return;
+      }
+
+      document.getElementById('city').textContent = data.name + (data.sys && data.sys.country ? ', ' + data.sys.country : '');
+      document.getElementById('temp').textContent = Math.round(data.main.temp) + '°C';
+      document.getElementById('humidity').textContent = data.main.humidity + '%';
+      const windKmh = (data.wind.speed * 3.6).toFixed(1);
+      document.getElementById('wind').textContent = windKmh + ' km/h';
+
+      // show simple icon from weather id
+      const id = data.weather && data.weather[0] && data.weather[0].id;
+      const main = data.weather && data.weather[0] && data.weather[0].main;
+      const iconEl = document.getElementById('icon');
+      if (id >= 200 && id < 600) iconEl.textContent = '🌧️';
+      else if (id >= 600 && id < 700) iconEl.textContent = '❄️';
+      else if (id >= 700 && id < 800) iconEl.textContent = '🌫️';
+      else if (id === 800) iconEl.textContent = '☀️';
+      else if (id > 800) iconEl.textContent = '☁️';
+      else iconEl.textContent = main || '🌤️';
+
+      messageEl.textContent = '';
+    } catch (err) {
+      console.error(err);
+      messageEl.textContent = 'An error occurred while fetching weather.';
+    }
+  }
+
+  btn.addEventListener('click', () => {
+    const city = input.value.trim();
+    if (city) checkWeather(city);
+  });
+
+  input.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+      const city = input.value.trim();
+      if (city) checkWeather(city);
+    }
+  });
+</script>
+</body>
+</html>
